@@ -1,0 +1,58 @@
+# Archivos y directorios a excluir de la imagen Docker
+
+# Credenciales y configuración local
+.env
+.env.*
+!.env.example
+*.json
+.gcp/
+credentials/
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation (opcional, descomentar si no quieres incluir docs)
+# *.md
+# docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Otros
+.DS_Store
+Thumbs.db

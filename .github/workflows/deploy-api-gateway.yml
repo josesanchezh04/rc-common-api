@@ -1,0 +1,61 @@
+name: Deploy API Gateway to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: "beautyfitapp"
+  REGION: "us-central1"
+  APP_NAME: "api-gateway"
+  WORKLOAD_IDENTITY_PROVIDER: "projects/242475944564/locations/global/workloadIdentityPools/github-actions/providers/github-provider"
+  SERVICE_ACCOUNT: "terraform@beautyfitapp.iam.gserviceaccount.com"
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    environment: rc-onb-user-pdn
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout del código 📥
+        uses: actions/checkout@v4
+
+      - name: Autenticación en Google Cloud 🔐
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "${{ env.WORKLOAD_IDENTITY_PROVIDER }}"
+          service_account: "${{ env.SERVICE_ACCOUNT }}"
+
+      - name: Setup de Artifact Registry ☁️
+        run: |
+          gcloud auth configure-docker gcr.io --quiet
+
+      - name: Build y Push de la Imagen Docker 🐳
+        run: |
+          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }} .
+          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }}
+
+      - name: Limpiar Secretos Heredados 🧹
+        run: gcloud run services update ${{ env.APP_NAME }} --region ${{ env.REGION }} --clear-secrets || true
+
+      - name: Deploy a Cloud Run 🚀
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: "${{ env.APP_NAME }}"
+          region: "${{ env.REGION }}"
+          image: "gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }}"
+          flags: '--allow-unauthenticated'
+          env_vars: |
+            ENV=production
+            GCP_PROJECT_ID=${{ env.PROJECT_ID }}
+            ENABLE_GCP_LOGGING=true
+            API_GATEWAY_PORT=8080
+            MS__USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}
+            MS__AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }}
