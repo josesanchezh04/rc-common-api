@@ -25,8 +25,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Crear usuario no-root
-RUN useradd -m -u 1000 -s /bin/bash appuser && \
-    chown -R appuser:appuser /app
+RUN useradd -m -u 1000 -s /bin/bash appuser
 
 # Copiar dependencias desde builder
 COPY --from=builder /root/.local /home/appuser/.local
