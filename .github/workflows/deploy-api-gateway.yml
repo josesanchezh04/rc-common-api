@@ -30,12 +30,16 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
+          token_format: "access_token"
           workload_identity_provider: "${{ env.WORKLOAD_IDENTITY_PROVIDER }}"
           service_account: "${{ env.SERVICE_ACCOUNT }}"
 
       - name: Setup de Artifact Registry ☁️
-        run: |
-          gcloud auth configure-docker gcr.io --quiet
+        uses: docker/login-action@v3
+        with:
+          registry: gcr.io
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Build y Push de la Imagen Docker 🐳
         run: |
@@ -51,7 +55,7 @@ jobs:
           service: "${{ env.APP_NAME }}"
           region: "${{ env.REGION }}"
           image: "gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }}"
-          flags: '--allow-unauthenticated'
+          flags: "--allow-unauthenticated"
           env_vars: |
             ENV=production
             GCP_PROJECT_ID=${{ env.PROJECT_ID }}
