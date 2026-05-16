@@ -1,5 +1,7 @@
 .env
+*.env
 *.json
 logs/
 *.md
 __pycache__/
+.agents/

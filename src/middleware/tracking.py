@@ -3,7 +3,7 @@ import uuid
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Callable
-from shared.logger.logger import set_tracking_id
+from beautyfit_logger import set_tracking_id
 
 
 class RequestTrackingMiddleware(BaseHTTPMiddleware):

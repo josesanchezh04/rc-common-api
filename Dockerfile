@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ============================================
 # Stage 1: Builder
 # ============================================
@@ -14,7 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 
 # Instalar dependencias en directorio local del usuario
-RUN pip install --no-cache-dir --user --compile -r requirements.txt
+RUN --mount=type=secret,id=TOKEN_GITHUB \
+    export TOKEN_GITHUB=$(cat /run/secrets/TOKEN_GITHUB) && \
+    pip install --no-cache-dir --user -r requirements.txt
 
 
 # ============================================

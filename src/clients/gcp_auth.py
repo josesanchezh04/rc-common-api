@@ -1,27 +1,37 @@
 """GCP Authentication utilities for Service-to-Service internal networking."""
-import os
 import httpx
 from typing import Optional
+
 from loguru import logger
+
+from config.settings import get_settings
 
 # Google Cloud Metadata Server URL
 # See: https://cloud.google.com/run/docs/authenticating/service-to-service
-METADATA_SERVER_URL = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity"
+METADATA_SERVER_URL = (
+    "http://metadata.google.internal/computeMetadata/v1"
+    "/instance/service-accounts/default/identity"
+)
+
 
 async def get_oidc_token(audience: str) -> Optional[str]:
-    """
-    Asynchronously fetches an Identity (OIDC) token from the GCP Metadata server.
-    This works automatically when running inside Cloud Run or other GCP compute instances.
-    
+    """Fetch an OIDC identity token from the GCP Metadata server.
+
+    Works automatically when running inside Cloud Run or other GCP compute
+    instances. Returns ``None`` outside of production so local development is
+    unaffected.
+
     Args:
-        audience: The URL of the receiving internal service (e.g., https://user-service-xyz.run.app)
-        
+        audience: URL of the receiving internal service
+            (e.g. ``https://user-service-xyz.run.app``).
+
     Returns:
-        The OIDC token as a string, or None if not running in GCP or an error occurs.
+        The OIDC token string, or ``None`` if not in production or on error.
     """
-    # Bypass in local development
-    if os.getenv("ENV", "development").lower() != "production":
-        logger.debug(f"Bypassing OIDC token fetch in {os.getenv('ENV')} environment.")
+    settings = get_settings()
+
+    if settings.env != "production":
+        logger.debug(f"Bypassing OIDC token fetch in '{settings.env}' environment.")
         return None
 
     try:
