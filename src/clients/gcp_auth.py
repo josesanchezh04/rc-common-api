@@ -2,9 +2,10 @@
 import httpx
 from typing import Optional
 
-from loguru import logger
-
+from beautyfit_logger import get_logger
 from config.settings import get_settings
+
+logger = get_logger("GCPAuth")
 
 # Google Cloud Metadata Server URL
 # See: https://cloud.google.com/run/docs/authenticating/service-to-service
@@ -35,14 +36,25 @@ async def get_oidc_token(audience: str) -> Optional[str]:
         return None
 
     try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
+        async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(
                 METADATA_SERVER_URL,
                 params={"audience": audience},
                 headers={"Metadata-Flavor": "Google"}
             )
             response.raise_for_status()
-            return response.text
+            token = response.text
+            logger.debug(f"Successfully fetched OIDC token for audience: {audience}")
+            return token
+    except httpx.HTTPStatusError as err:
+        logger.warning(
+            f"Failed to fetch OIDC token (HTTP {err.response.status_code}). "
+            f"Proceeding without authentication. Audience: {audience}"
+        )
+        return None
     except httpx.HTTPError as err:
-        logger.error(f"Failed to fetch OIDC token from Metadata server: {err}")
+        logger.warning(
+            f"Failed to fetch OIDC token: {err}. "
+            f"Proceeding without authentication. Audience: {audience}"
+        )
         return None
