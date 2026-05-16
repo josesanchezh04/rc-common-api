@@ -20,4 +20,4 @@ pydantic-settings==2.1.0
 # Logging
 loguru==0.7.2
 
-beautyfit-logger @ git+https://${TOKEN_GITHUB}@github.com/josesanchezh04/beauty-lib-common-logger.git@v1.0.0
+beautyfit-logger @ git+https://${TOKEN_GITHUB}@github.com/josesanchezh04/beauty-lib-common-logger.git@v1.0.1

@@ -3,8 +3,11 @@ import uuid
 from typing import Optional
 
 import httpx
+from beautyfit_logger import get_logger
 
 from clients.gcp_auth import get_oidc_token
+
+logger = get_logger("AuthClient")
 
 
 class AuthServiceClient:
@@ -53,18 +56,26 @@ class AuthServiceClient:
             ValueError: If the token is reported as invalid.
         """
         headers = await self._get_base_headers(tracking_id)
+        
+        logger.info(f"Sending token validation request to: {self.base_url}/auth/validate")
+        logger.debug(f"Headers: {headers}")
 
         response = await self.client.post(
             f"{self.base_url}/auth/validate",
             json={"firebase_token": firebase_token},
             headers=headers,
         )
+        
+        logger.info(f"Auth service response status: {response.status_code}")
+        
         response.raise_for_status()
         data = response.json()
 
         if not data.get("valid"):
+            logger.warning("Token marked as invalid by auth-service")
             raise ValueError("Invalid token")
 
+        logger.info("Token validation successful")
         return data.get("user_data", {})
 
     async def close(self) -> None:

@@ -2,8 +2,11 @@
 from typing import Optional
 
 import httpx
+from beautyfit_logger import get_logger
 
 from clients.gcp_auth import get_oidc_token
+
+logger = get_logger("UserClient")
 
 
 class UserServiceClient:
@@ -49,6 +52,8 @@ class UserServiceClient:
         Raises:
             httpx.HTTPStatusError: If the user-service returns a non-2xx status.
         """
+        logger.info(f"Fetching user {user_id} from user-service at: {self.base_url}/users/me")
+        
         headers = await self._get_base_headers(tracking_id)
         headers["X-User-ID"] = user_id
 
@@ -56,8 +61,14 @@ class UserServiceClient:
             f"{self.base_url}/users/me",
             headers=headers,
         )
+        
+        logger.info(f"User service response status: {response.status_code}")
+        
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        
+        logger.info(f"Successfully fetched user data for {user_id}")
+        return data
 
     async def register_user_with_data(
         self, user_data: dict, tracking_id: Optional[str] = None
@@ -77,6 +88,8 @@ class UserServiceClient:
         Raises:
             httpx.HTTPStatusError: If the user-service returns a non-2xx status.
         """
+        logger.info(f"Registering user with user-service at: {self.base_url}/users/register-with-data")
+        
         headers = await self._get_base_headers(tracking_id)
 
         response = await self.client.post(
@@ -84,8 +97,14 @@ class UserServiceClient:
             json=user_data,
             headers=headers,
         )
+        
+        logger.info(f"User service response status: {response.status_code}")
+        
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        
+        logger.info("Successfully registered user")
+        return data
 
     async def update_phone(
         self, user_id: str, phone: str, phone_verified: bool,
