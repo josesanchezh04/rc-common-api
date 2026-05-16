@@ -43,8 +43,12 @@ jobs:
 
       - name: Build y Push de la Imagen Docker 🐳
         run: |
-          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }} .
+          docker build \
+            --secret id=TOKEN_GITHUB,env=TOKEN_GITHUB \
+            -t gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }} .
           docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.APP_NAME }}:${{ github.sha }}
+        env:
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Limpiar Secretos Heredados 🧹
         run: gcloud run services update ${{ env.APP_NAME }} --region ${{ env.REGION }} --clear-secrets || true

@@ -6,9 +6,10 @@ FROM python:3.11-slim as builder
 
 WORKDIR /build
 
-# Instalar dependencias de compilación
+# Instalar dependencias de compilación y git
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements
